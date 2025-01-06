@@ -16,8 +16,9 @@ export default function RestaurantChat() {
   const [messages, setMessages] = useState<
     Array<{ role: "user" | "assistant"; content: string }>
   >([]);
-  const [recommendation, setRecommendation] =
-    useState<RecommendationResponse | null>(null);
+  const [recommendations, setRecommendation] = useState<
+    RecommendationResponse[]
+  >([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [chatStarted, setChatStarted] = useState(false);
@@ -38,7 +39,7 @@ export default function RestaurantChat() {
       const result = await getRecommendation(query);
       console.log("Received recommendation:", result);
       if (result && result.data && result.summary) {
-        setRecommendation(result);
+        setRecommendation((prev) => [...prev, result]);
         setMessages((prev) => [
           ...prev,
           { role: "assistant", content: result.summary },
@@ -51,7 +52,6 @@ export default function RestaurantChat() {
       setError(
         error instanceof Error ? error.message : "An unknown error occurred"
       );
-      setRecommendation(null);
     } finally {
       setIsLoading(false);
     }
@@ -75,16 +75,16 @@ export default function RestaurantChat() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto mb-4">
+        <div className="flex-1 overflow-y-auto mb-4 space-y-4">
           {error && (
-            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded-lg">
+            <div className="p-2 bg-red-100 text-red-700 rounded-lg">
               {error}
             </div>
           )}
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`mb-4 ${
+              className={`${
                 message.role === "user" ? "text-right" : "text-left"
               }`}
             >
@@ -99,11 +99,11 @@ export default function RestaurantChat() {
               </span>
             </div>
           ))}
-          {recommendation && recommendation.data && (
-            <div className="mb-4">
+          {recommendations.map((recommendation, index) => (
+            <div key={index} className="mt-4">
               <RestaurantCard restaurant={recommendation.data} />
             </div>
-          )}
+          ))}
         </div>
       )}
       <form onSubmit={handleSubmit} className="flex gap-2">
