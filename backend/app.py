@@ -1,3 +1,4 @@
+import os
 import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -32,7 +33,7 @@ index = build_index(storage_context)
 @app.route("/")
 def hello():
     return "Hello, Heroku!"
-    
+
 @app.route("/recommend/", methods=["POST"])
 def recommend():
   """
@@ -76,5 +77,5 @@ def recommend():
   return jsonify(data), 200
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Use $PORT or default to 5000 for local testing
+    port = int(os.environ.get("PORT", 5001))  # Use $PORT or default to 5000 for local testing
     app.run(host="0.0.0.0", port=port)
