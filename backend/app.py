@@ -29,6 +29,10 @@ storage_context, pinecone_index = initialize_pinecone(PINECONE_API_KEY, INDEX_NA
 index = build_index(storage_context)
 
 # Routes
+@app.route("/")
+def hello():
+    return "Hello, Heroku!"
+    
 @app.route("/recommend/", methods=["POST"])
 def recommend():
   """
@@ -72,4 +76,5 @@ def recommend():
   return jsonify(data), 200
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))  # Use $PORT or default to 5000 for local testing
+    app.run(host="0.0.0.0", port=port)
