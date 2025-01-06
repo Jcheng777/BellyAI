@@ -1,3 +1,4 @@
+import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from services.rag import (
@@ -62,9 +63,9 @@ def recommend():
     if id_of_first_biz == doc.metadata.get("business_id"):
       reviewsList.append(doc.text)
   
-  if not reviews_list:
+  if not reviewsList:
     return jsonify({"error": "No reviews found for the first business"}), 500
-    
+
   summary = generate_summary(user_input, reviewsList, OPENAI_API_KEY)
   data["summary"] = summary
 

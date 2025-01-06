@@ -1,8 +1,9 @@
 from pinecone.grpc import PineconeGRPC
+from pinecone import ServerlessSpec
 from llama_index.vector_stores.pinecone import PineconeVectorStore
 from llama_index.core import StorageContext, VectorStoreIndex
 from llama_index.core.retrievers import VectorIndexRetriever
-import openai
+from openai import OpenAI
 
 
 def initialize_pinecone(api_key, index_name, dimension=1536):
@@ -10,15 +11,6 @@ def initialize_pinecone(api_key, index_name, dimension=1536):
     Initialize Pinecone Vector DB and connect to the index or create new index.
     """
     pc = PineconeGRPC(api_key=api_key)
-
-    # Check if the index exists. If not, create it
-    if index_name not in pc.list_indexes():
-        pc.create_index(
-            index_name,
-            dimension=dimension,
-            spec=ServerlessSpec(cloud="aws", region="us-east-1")
-        )
-
     pinecone_index = pc.Index(index_name)
     vector_store = PineconeVectorStore(pinecone_index=pinecone_index)
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
@@ -27,12 +19,12 @@ def initialize_pinecone(api_key, index_name, dimension=1536):
 
 def build_index(storage_context, documents=None):
     """
-    Build a new VectorStoreIndex or load an existing one.
+    Load an existing one.
     """
-    if documents:
-        index = VectorStoreIndex.from_documents(documents, storage_context=storage_context)
-    else:
-        index = VectorStoreIndex(storage_context=storage_context)
+     # Retrieve the vector store from the storage context
+    vector_store = storage_context.vector_store
+
+    index = VectorStoreIndex.from_vector_store(vector_store=vector_store)
     return index
 
 def query_index(index, query, top_k=5):
@@ -49,7 +41,7 @@ def generate_summary(user_query, reviews, api_key):
   # Combine reviews into a single string with numbering
   numbered_reviews = "\n".join([f"{i+1}. {review}" for i, review in enumerate(reviews)])
 
-  openai.api_key = api_key
+  client = OpenAI(api_key=api_key)
   prompt = (
         f"Based on the following reviews, write a 2-3 sentence summary of the restaurant, "
         f"focusing on its most notable features relevant to the user query.\n\n"
@@ -57,9 +49,11 @@ def generate_summary(user_query, reviews, api_key):
         f"Reviews:\n{numbered_reviews}\n\n"
         f"Provide a clear and concise summary."
     )  
-  response = openai.Completion.create(
-    engine="text-davinci-003",
-    prompt=prompt,
-    max_tokens=150
-  )
-  return response.choices[0].text.strip()
+  response = client.chat.completions.create(
+        model="gpt-4o",  # Use the appropriate model for your use case
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant that summarizes information."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+  return response.choices[0].message.content.strip()
