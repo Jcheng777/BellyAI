@@ -2,8 +2,6 @@
 
 Do you struggle to find great restaurants that match all your preferences? BellyAI is here to help! Just send a prompt describing the kind of restaurant you're looking for, and BellyAI will provide tailored recommendations along with detailed business information.
 
--------------
-
 ## Tech Stack ##
 Frontend:
   - Frameworks/Libraries: React, Next.js, Tailwind CSS, Typescript
