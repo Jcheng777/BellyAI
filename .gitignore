@@ -1,2 +1,3 @@
 venv
 .env
+backend/services/__pycache__
