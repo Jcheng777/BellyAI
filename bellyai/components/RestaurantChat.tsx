@@ -11,14 +11,13 @@ const samplePrompts = [
   "Recommend a family-friendly restaurant with vegetarian options",
 ];
 
+type ChatItem =
+  | { type: "message"; role: "user" | "assistant"; content: string }
+  | { type: "recommendation"; data: RecommendationResponse };
+
 export default function RestaurantChat() {
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<
-    Array<{ role: "user" | "assistant"; content: string }>
-  >([]);
-  const [recommendations, setRecommendation] = useState<
-    RecommendationResponse[]
-  >([]);
+  const [chatItems, setChatItems] = useState<ChatItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [chatStarted, setChatStarted] = useState(false);
@@ -29,7 +28,10 @@ export default function RestaurantChat() {
     if (!query.trim()) return;
 
     setChatStarted(true);
-    setMessages((prev) => [...prev, { role: "user", content: query }]);
+    setChatItems((prev) => [
+      ...prev,
+      { type: "message", role: "user", content: query },
+    ]);
     setInput("");
     setIsLoading(true);
     setError(null);
@@ -39,10 +41,10 @@ export default function RestaurantChat() {
       const result = await getRecommendation(query);
       console.log("Received recommendation:", result);
       if (result && result.data && result.summary) {
-        setRecommendation((prev) => [...prev, result]);
-        setMessages((prev) => [
+        setChatItems((prev) => [
           ...prev,
-          { role: "assistant", content: result.summary },
+          { type: "message", role: "assistant", content: result.summary },
+          { type: "recommendation", data: result },
         ]);
       } else {
         throw new Error("Invalid recommendation data received");
@@ -81,27 +83,30 @@ export default function RestaurantChat() {
               {error}
             </div>
           )}
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`${
-                message.role === "user" ? "text-right" : "text-left"
-              }`}
-            >
-              <span
-                className={`inline-block p-2 rounded-lg ${
-                  message.role === "user"
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-gray-800"
-                }`}
-              >
-                {message.content}
-              </span>
-            </div>
-          ))}
-          {recommendations.map((recommendation, index) => (
-            <div key={index} className="mt-4">
-              <RestaurantCard restaurant={recommendation.data} />
+          {chatItems.map((item, index) => (
+            <div key={index}>
+              {item.type === "message" && (
+                <div
+                  className={`${
+                    item.role === "user" ? "text-right" : "text-left"
+                  }`}
+                >
+                  <span
+                    className={`inline-block p-2 rounded-lg ${
+                      item.role === "user"
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-200 text-gray-800"
+                    }`}
+                  >
+                    {item.content}
+                  </span>
+                </div>
+              )}
+              {item.type === "recommendation" && (
+                <div className="mt-2">
+                  <RestaurantCard restaurant={item.data.data} />
+                </div>
+              )}
             </div>
           ))}
         </div>
