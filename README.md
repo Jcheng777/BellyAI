@@ -14,6 +14,8 @@ Backend:
   - Data sources: Yelp API, Serp API
 
 ## How It Works ##
+![resturant_review](https://github.com/user-attachments/assets/a7e9db0d-ab02-4b0a-a9fe-85fc8c51064a)
+
 1. Data Collection
 - Using the Yelp Business Search API, I gathered restaurant data around the NYC area.
 - Since Yelp only provides three reviews per business, I leveraged the Serp API to retrieve up to 50 reviews per business.
